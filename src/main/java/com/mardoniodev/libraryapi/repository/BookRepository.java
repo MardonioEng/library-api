@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface BookRepository extends JpaRepository<Book, UUID> {
 
+    boolean existsByAuthor(Author author);
+
     List<Book> findByAuthor(Author author);
 
     List<Book> findByTitle(String title);

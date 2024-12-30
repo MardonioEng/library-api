@@ -1,14 +1,19 @@
 package com.mardoniodev.libraryapi.controller;
 
 import com.mardoniodev.libraryapi.controller.dto.AuthorDTO;
+import com.mardoniodev.libraryapi.controller.dto.ResponseError;
+import com.mardoniodev.libraryapi.exceptions.DuplicateRegisterException;
+import com.mardoniodev.libraryapi.exceptions.OperationNotAllowedException;
 import com.mardoniodev.libraryapi.model.Author;
 import com.mardoniodev.libraryapi.service.AuthorService;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -58,47 +63,62 @@ public class AuthorController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> saveAuthor(@RequestBody AuthorDTO authorDTO) {
-        Author entityAuthor = authorDTO.mapToAuthor();
-        authorService.save(entityAuthor);
+    public ResponseEntity<Object> saveAuthor(@RequestBody AuthorDTO authorDTO) {
+        try {
+            Author entityAuthor = authorDTO.mapToAuthor();
+            authorService.save(entityAuthor);
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(entityAuthor.getId())
-                .toUri();
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(entityAuthor.getId())
+                    .toUri();
 
-        return ResponseEntity.created(location).build();
+            return ResponseEntity.created(location).build();
+        } catch (DuplicateRegisterException e) {
+            var errorDTO = ResponseError.conflict("Duplicate author");
+            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateAuthor(@PathVariable String id, @RequestBody AuthorDTO authorDTO) {
-        UUID idAuthor = UUID.fromString(id);
-        Optional<Author> authorOptional = authorService.findById(idAuthor);
-        if(authorOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Object> updateAuthor(@PathVariable String id, @RequestBody AuthorDTO authorDTO) {
+        try {
+            UUID idAuthor = UUID.fromString(id);
+            Optional<Author> authorOptional = authorService.findById(idAuthor);
+            if (authorOptional.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Author author = authorOptional.get();
+            author.setName(authorDTO.name());
+            author.setBirthdate(authorDTO.birthdate());
+            author.setNationality(authorDTO.nationality());
+
+            authorService.update(author);
+
+            return ResponseEntity.noContent().build();
+        } catch (DuplicateRegisterException e) {
+            var errorDTO = ResponseError.conflict("Duplicate author");
+            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
         }
-
-        Author author = authorOptional.get();
-        author.setName(authorDTO.name());
-        author.setBirthdate(authorDTO.birthdate());
-        author.setNationality(authorDTO.nationality());
-
-        authorService.update(author);
-
-        return ResponseEntity.noContent().build();
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAuthor(@PathVariable String id) {
-        UUID idAuthor = UUID.fromString(id);
-        Optional<Author> authorOptional = authorService.findById(idAuthor);
-        if(authorOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Object> deleteAuthor(@PathVariable String id) {
+        try {
+            UUID idAuthor = UUID.fromString(id);
+            Optional<Author> authorOptional = authorService.findById(idAuthor);
+            if (authorOptional.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            authorService.deleteAuthor(authorOptional.get());
+            return ResponseEntity.noContent().build();
+        } catch (OperationNotAllowedException e) {
+            var errorDTO = ResponseError.defaultError(e.getMessage());
+            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
         }
-        authorService.deleteAuthor(authorOptional.get());
-        return ResponseEntity.noContent().build();
     }
 
 }
