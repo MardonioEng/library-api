@@ -2,10 +2,9 @@ package com.mardoniodev.libraryapi.controller.dto;
 
 import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public record ResponseError(int status, String message, List<FieldError> fieldErrors) {
+public record ResponseError(int status, String message, List<FieldErrorDetail> fieldErrors) {
 
     public static ResponseError defaultError(String message) {
         return new ResponseError(HttpStatus.BAD_REQUEST.value(), message, List.of());

@@ -5,6 +5,8 @@ import com.mardoniodev.libraryapi.model.Author;
 import com.mardoniodev.libraryapi.repository.AuthorRepository;
 import com.mardoniodev.libraryapi.repository.BookRepository;
 import com.mardoniodev.libraryapi.validator.AuthorValidator;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +27,17 @@ public class AuthorService {
     }
 
     public List<Author> findAuthors(String name, String nationality) {
-        return authorRepository.findByNameAndNationality(name, nationality);
+        var author = new Author();
+        author.setName(name);
+        author.setNationality(nationality);
+
+        ExampleMatcher matcher = ExampleMatcher
+                .matching()
+                .withIgnoreNullValues()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+        Example<Author> authorExample = Example.of(author, matcher);
+        return authorRepository.findAll(authorExample);
     }
 
     public Optional<Author> findById(UUID id) {

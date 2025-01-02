@@ -6,6 +6,7 @@ import com.mardoniodev.libraryapi.exceptions.DuplicateRegisterException;
 import com.mardoniodev.libraryapi.exceptions.OperationNotAllowedException;
 import com.mardoniodev.libraryapi.model.Author;
 import com.mardoniodev.libraryapi.service.AuthorService;
+import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +64,7 @@ public class AuthorController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> saveAuthor(@RequestBody AuthorDTO authorDTO) {
+    public ResponseEntity<Object> saveAuthor(@RequestBody @Valid AuthorDTO authorDTO) {
         try {
             Author entityAuthor = authorDTO.mapToAuthor();
             authorService.save(entityAuthor);
@@ -82,7 +83,7 @@ public class AuthorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateAuthor(@PathVariable String id, @RequestBody AuthorDTO authorDTO) {
+    public ResponseEntity<Object> updateAuthor(@PathVariable String id, @RequestBody @Valid AuthorDTO authorDTO) {
         try {
             UUID idAuthor = UUID.fromString(id);
             Optional<Author> authorOptional = authorService.findById(idAuthor);
