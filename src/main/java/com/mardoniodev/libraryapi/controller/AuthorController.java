@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/authors")
-public class AuthorController {
+public class AuthorController implements GenericController {
 
     private final AuthorService authorService;
     private final AuthorMapper authorMapper;
@@ -42,7 +42,7 @@ public class AuthorController {
                 .stream()
                 .map(authorMapper::toDto)
                 .collect(Collectors.toList());
-        return  ResponseEntity.ok(list);
+        return ResponseEntity.ok(list);
 
     }
 
@@ -58,62 +58,42 @@ public class AuthorController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> saveAuthor(@RequestBody @Valid AuthorDTO authorDTO) {
-        try {
-            Author entityAuthor = authorMapper.toEntity(authorDTO);
-            authorService.save(entityAuthor);
+    public ResponseEntity<Void> saveAuthor(@RequestBody @Valid AuthorDTO authorDTO) {
+        Author author = authorMapper.toEntity(authorDTO);
+        authorService.save(author);
+        URI location = this.generateHeaderLocation(author.getId());
 
-            URI location = ServletUriComponentsBuilder
-                    .fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(entityAuthor.getId())
-                    .toUri();
-
-            return ResponseEntity.created(location).build();
-        } catch (DuplicateRegisterException e) {
-            var errorDTO = ResponseError.conflict("Duplicate author");
-            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
-        }
+        return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateAuthor(@PathVariable String id, @RequestBody @Valid AuthorDTO authorDTO) {
-        try {
-            UUID idAuthor = UUID.fromString(id);
-            Optional<Author> authorOptional = authorService.findById(idAuthor);
-            if (authorOptional.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            Author author = authorOptional.get();
-            author.setName(authorDTO.name());
-            author.setBirthdate(authorDTO.birthdate());
-            author.setNationality(authorDTO.nationality());
-
-            authorService.update(author);
-
-            return ResponseEntity.noContent().build();
-        } catch (DuplicateRegisterException e) {
-            var errorDTO = ResponseError.conflict("Duplicate author");
-            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
+    public ResponseEntity<Void> updateAuthor(@PathVariable String id, @RequestBody @Valid AuthorDTO authorDTO) {
+        UUID idAuthor = UUID.fromString(id);
+        Optional<Author> authorOptional = authorService.findById(idAuthor);
+        if (authorOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+
+        Author author = authorOptional.get();
+        author.setName(authorDTO.name());
+        author.setBirthdate(authorDTO.birthdate());
+        author.setNationality(authorDTO.nationality());
+
+        authorService.update(author);
+
+        return ResponseEntity.noContent().build();
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteAuthor(@PathVariable String id) {
-        try {
-            UUID idAuthor = UUID.fromString(id);
-            Optional<Author> authorOptional = authorService.findById(idAuthor);
-            if (authorOptional.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            authorService.deleteAuthor(authorOptional.get());
-            return ResponseEntity.noContent().build();
-        } catch (OperationNotAllowedException e) {
-            var errorDTO = ResponseError.defaultError(e.getMessage());
-            return ResponseEntity.status(errorDTO.status()).body(errorDTO);
+    public ResponseEntity<Void> deleteAuthor(@PathVariable String id) {
+        UUID idAuthor = UUID.fromString(id);
+        Optional<Author> authorOptional = authorService.findById(idAuthor);
+        if (authorOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+        authorService.deleteAuthor(authorOptional.get());
+        return ResponseEntity.noContent().build();
     }
 
 }

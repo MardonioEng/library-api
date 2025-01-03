@@ -20,7 +20,7 @@ public record BookRegistrationDTO(
 
         @NotNull(message = "Required field")
         @Past(message = "Cannot be future date")
-        LocalDate publishedDate,
+        LocalDate publicationDate,
 
         GenreEnum genre,
 
