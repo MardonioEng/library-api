@@ -1,13 +1,18 @@
 package com.mardoniodev.libraryapi.model;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "book")
+@EntityListeners(AuditingEntityListener.class)
 public class Book {
 
     @Id
@@ -34,6 +39,17 @@ public class Book {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_author")
     private Author author;
+
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "user_id")
+    private UUID userId;
 
     public Book() {
     }
@@ -94,6 +110,30 @@ public class Book {
         this.author = author;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     @Override
     public String toString() {
         return "Book{" +
@@ -102,7 +142,10 @@ public class Book {
                 ", title='" + title + '\'' +
                 ", publicationDate=" + publicationDate +
                 ", genre=" + genre +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", price=" + price +
+                ", userId=" + userId +
                 '}';
     }
 }

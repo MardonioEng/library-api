@@ -2,19 +2,19 @@ package com.mardoniodev.libraryapi.controller;
 
 import com.mardoniodev.libraryapi.controller.dto.AuthorDTO;
 import com.mardoniodev.libraryapi.controller.dto.ResponseError;
+import com.mardoniodev.libraryapi.controller.mappers.AuthorMapper;
 import com.mardoniodev.libraryapi.exceptions.DuplicateRegisterException;
 import com.mardoniodev.libraryapi.exceptions.OperationNotAllowedException;
 import com.mardoniodev.libraryapi.model.Author;
 import com.mardoniodev.libraryapi.service.AuthorService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,9 +24,13 @@ import java.util.stream.Collectors;
 public class AuthorController {
 
     private final AuthorService authorService;
+    private final AuthorMapper authorMapper;
+    private final MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
-    public AuthorController(AuthorService authorService) {
+    public AuthorController(AuthorService authorService, AuthorMapper authorMapper, MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter) {
         this.authorService = authorService;
+        this.authorMapper = authorMapper;
+        this.mappingJackson2HttpMessageConverter = mappingJackson2HttpMessageConverter;
     }
 
     @GetMapping
@@ -36,12 +40,8 @@ public class AuthorController {
         List<Author> authors = authorService.findAuthors(name, nationality);
         List<AuthorDTO> list = authors
                 .stream()
-                .map(author -> new AuthorDTO(
-                        author.getId(),
-                        author.getName(),
-                        author.getBirthdate(),
-                        author.getNationality())
-                ).collect(Collectors.toList());
+                .map(authorMapper::toDto)
+                .collect(Collectors.toList());
         return  ResponseEntity.ok(list);
 
     }
@@ -49,24 +49,18 @@ public class AuthorController {
     @GetMapping("/{id}")
     public ResponseEntity<AuthorDTO> findById(@PathVariable String id) {
         UUID idAuthor = UUID.fromString(id);
-        Optional<Author> authorOptional = authorService.findById(idAuthor);
-        if(authorOptional.isPresent()) {
-            Author author = authorOptional.get();
-            AuthorDTO dto =  new AuthorDTO(
-                    author.getId(),
-                    author.getName(),
-                    author.getBirthdate(),
-                    author.getNationality()
-            );
-            return ResponseEntity.ok(dto);
-        }
-        return ResponseEntity.notFound().build();
+        return authorService
+                .findById(idAuthor)
+                .map(author -> {
+                    AuthorDTO authorDTO = authorMapper.toDto(author);
+                    return ResponseEntity.ok(authorDTO);
+                }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Object> saveAuthor(@RequestBody @Valid AuthorDTO authorDTO) {
         try {
-            Author entityAuthor = authorDTO.mapToAuthor();
+            Author entityAuthor = authorMapper.toEntity(authorDTO);
             authorService.save(entityAuthor);
 
             URI location = ServletUriComponentsBuilder
