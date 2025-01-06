@@ -4,6 +4,7 @@ import com.mardoniodev.libraryapi.model.Book;
 import com.mardoniodev.libraryapi.model.GenreEnum;
 import com.mardoniodev.libraryapi.repository.BookRepository;
 import com.mardoniodev.libraryapi.repository.specs.BookSpecs;
+import com.mardoniodev.libraryapi.validator.BookValidator;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,11 @@ import java.util.UUID;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final BookValidator bookValidator;
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, BookValidator bookValidator) {
         this.bookRepository = bookRepository;
+        this.bookValidator = bookValidator;
     }
 
     public List<Book> findAuthors(
@@ -54,6 +57,7 @@ public class BookService {
     }
 
     public Book saveBook(Book book) {
+        bookValidator.validateBook(book);
         return bookRepository.save(book);
     }
 
@@ -61,6 +65,7 @@ public class BookService {
         if(book.getId() == null) {
             throw new IllegalArgumentException("Para atualizar, é necessário que o Livro já esteja salvo na base.");
         }
+        bookValidator.validateBook(book);
         bookRepository.save(book);
     }
 

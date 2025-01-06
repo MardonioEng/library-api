@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
@@ -15,5 +16,7 @@ public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificat
     List<Book> findByAuthor(Author author);
 
     List<Book> findByTitle(String title);
+
+    Optional<Book> findByIsbn(String isbn);
 
 }

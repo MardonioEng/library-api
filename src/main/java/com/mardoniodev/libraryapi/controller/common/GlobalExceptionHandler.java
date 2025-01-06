@@ -3,6 +3,7 @@ package com.mardoniodev.libraryapi.controller.common;
 import com.mardoniodev.libraryapi.controller.dto.FieldErrorDetail;
 import com.mardoniodev.libraryapi.controller.dto.ResponseError;
 import com.mardoniodev.libraryapi.exceptions.DuplicateRegisterException;
+import com.mardoniodev.libraryapi.exceptions.InvalidFieldException;
 import com.mardoniodev.libraryapi.exceptions.OperationNotAllowedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -38,6 +39,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseError handleOperationNotAllowedException(OperationNotAllowedException e) {
         return ResponseError.defaultError(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidFieldException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseError handleInvalidFieldException(InvalidFieldException e) {
+        return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Validation Error",
+                List.of(new FieldErrorDetail(e.getField(), e.getMessage())));
     }
 
     @ExceptionHandler(RuntimeException.class)

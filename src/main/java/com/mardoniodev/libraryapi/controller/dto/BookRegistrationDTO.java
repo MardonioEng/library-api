@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public record BookRegistrationDTO(
         @NotBlank(message = "Required field")
-        @ISBN
+        @ISBN()
         String isbn,
 
         @NotBlank(message = "Required field")
