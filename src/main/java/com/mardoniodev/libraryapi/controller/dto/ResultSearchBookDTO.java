@@ -10,7 +10,7 @@ public record ResultSearchBookDTO(
         UUID id,
         String isbn,
         String title,
-        LocalDate publishedDate,
+        LocalDate publicationDate,
         GenreEnum genre,
         BigDecimal price,
         AuthorDTO authorDTO
