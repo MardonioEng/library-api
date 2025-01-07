@@ -2,6 +2,7 @@ package com.mardoniodev.libraryapi.repository;
 
 import com.mardoniodev.libraryapi.model.Author;
 import com.mardoniodev.libraryapi.model.Book;
+import org.hibernate.query.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 

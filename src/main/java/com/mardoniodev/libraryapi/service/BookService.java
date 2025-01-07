@@ -5,6 +5,9 @@ import com.mardoniodev.libraryapi.model.GenreEnum;
 import com.mardoniodev.libraryapi.repository.BookRepository;
 import com.mardoniodev.libraryapi.repository.specs.BookSpecs;
 import com.mardoniodev.libraryapi.validator.BookValidator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +26,14 @@ public class BookService {
         this.bookValidator = bookValidator;
     }
 
-    public List<Book> findAuthors(
-            String isbn, String title, String authorName, GenreEnum genre, Integer publicationYear
+    public Page<Book> findBooks(
+            String isbn,
+            String title,
+            String authorName,
+            GenreEnum genre,
+            Integer publicationYear,
+            Integer pageNumber,
+            Integer pageSize
     ) {
         Specification<Book> specs = Specification
                 .where((root, query, criteriaBuilder) -> criteriaBuilder.conjunction());
@@ -49,7 +58,9 @@ public class BookService {
             specs = specs.and(BookSpecs.authorNameLike(authorName));
         }
 
-        return bookRepository.findAll(specs);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        return bookRepository.findAll(specs, pageable);
     }
 
     public Optional<Book> findById(UUID id) {

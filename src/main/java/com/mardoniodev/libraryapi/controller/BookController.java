@@ -8,12 +8,12 @@ import com.mardoniodev.libraryapi.model.Book;
 import com.mardoniodev.libraryapi.model.GenreEnum;
 import com.mardoniodev.libraryapi.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,18 +32,20 @@ public class BookController implements GenericController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResultSearchBookDTO>> searchBooks(
+    public ResponseEntity<Page<ResultSearchBookDTO>> searchBooks(
             @RequestParam(value = "isbn", required = false) String isbn,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "author-name", required = false) String authorName,
             @RequestParam(value = "genre", required = false) GenreEnum genre,
-            @RequestParam(value = "publication-year", required = false) Integer publicationYear
+            @RequestParam(value = "publication-year", required = false) Integer publicationYear,
+            @RequestParam(value = "page", defaultValue = "0") Integer pageNumber,
+            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize
     ) {
-        var result = bookService.findAuthors(isbn, title, authorName, genre, publicationYear);
-        var resultDTO = result.stream()
-                .map(bookMapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok().body(resultDTO);
+        var pageResult = bookService.findBooks(isbn, title, authorName, genre, publicationYear, pageNumber, pageSize);
+
+        Page<ResultSearchBookDTO> resultDto = pageResult.map(bookMapper::toDto);
+
+        return ResponseEntity.ok().body(resultDto);
     }
 
     @GetMapping("/{id}")
