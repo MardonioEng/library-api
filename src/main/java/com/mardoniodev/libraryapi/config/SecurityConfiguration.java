@@ -23,11 +23,11 @@ public class SecurityConfiguration {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
-//                .formLogin(configurer -> {
-//                    configurer.loginPage("/login").permitAll();
-//                })
-                .authorizeHttpRequests(authorize ->
-                        authorize.anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize.requestMatchers("/authors/**").hasRole("ADMIN");
+                    authorize.requestMatchers("/books/**").hasAnyRole("USER", "ADMIN");
+                    authorize.anyRequest().authenticated();
+                })
                 .build();
     }
 
